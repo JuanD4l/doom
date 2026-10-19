@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: cyberdoom-api
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    plan: free
+    envVars:
+      - key: DATABASE_URL
+        value: sqlite:///./cyberdoom.db
+      - key: CORS_ORIGINS
+        value: "*"
