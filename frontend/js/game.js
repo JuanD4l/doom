@@ -468,6 +468,9 @@ class CyberDoomGame {
         }
 
         this._fetchLeaderboard();
+        if (window.cyberCharts) {
+            window.cyberCharts.loadAndRenderCharts();
+        }
     }
 
     async _fetchLeaderboard() {

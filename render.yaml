@@ -1,0 +1,41 @@
+# ==============================================================================
+# RENDER BLUEPRINT CONFIGURATION // CYBER-DOOM 2099
+# Despliegue automático de Backend (Web Service Python) y Frontend (Static Site)
+# ==============================================================================
+
+services:
+  # ----------------------------------------------------------------------------
+  # 1. BACKEND API REST (FastAPI + Python)
+  # ----------------------------------------------------------------------------
+  - type: web
+    name: cyberdoom-api
+    runtime: python
+    rootDir: backend
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /api/health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: CORS_ORIGINS
+        value: "*"
+      - key: DATABASE_URL
+        value: sqlite:///./cyberdoom.db
+
+  # ----------------------------------------------------------------------------
+  # 2. FRONTEND CLIENT (Static Site - HTML5 / Canvas / Vanilla JS / Chart.js)
+  # ----------------------------------------------------------------------------
+  - type: static
+    name: cyberdoom-frontend
+    rootDir: frontend
+    plan: free
+    publishPath: ./
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    headers:
+      - path: /*
+        name: Access-Control-Allow-Origin
+        value: "*"

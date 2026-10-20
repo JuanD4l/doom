@@ -11,6 +11,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
+    <!-- Chart.js para gráficos estadísticos consumiendo JSON desde el Backend -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     <div id="game-container">
@@ -39,7 +41,10 @@
                     <input type="text" id="playerName" maxlength="12" value="CYBER_MARINE" placeholder="Ingresa tu alias">
                 </div>
 
-                <button id="btn-start" class="btn-cyber">INICIAR MISIÓN [ CLICK ]</button>
+                <div class="btn-group-actions">
+                    <button id="btn-start" class="btn-cyber">INICIAR MISIÓN [ CLICK ]</button>
+                    <button id="btn-open-charts" class="btn-cyber btn-outline">📊 VER TELEMETRÍA Y GRÁFICOS (CHART.JS)</button>
+                </div>
                 <div class="backend-status" id="backendStatus">Conectando con Servidor...</div>
             </div>
         </div>
@@ -73,7 +78,58 @@
                     </ul>
                 </div>
 
-                <button id="btn-restart" class="btn-cyber btn-red">REINICIAR MISIÓN [ R ]</button>
+                <div class="btn-group-actions">
+                    <button id="btn-restart" class="btn-cyber btn-red">REINICIAR MISIÓN [ R ]</button>
+                    <button id="btn-go-charts" class="btn-cyber btn-outline">📊 COMPARATIVA EN GRÁFICA</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal de Estadísticas y Gráficos (Chart.js) -->
+        <div id="charts-modal" class="overlay">
+            <div class="cyber-box glow-cyan charts-box">
+                <div class="charts-header">
+                    <h2>TELEMETRÍA DE COMBATE // ANÁLISIS DE DATOS</h2>
+                    <span class="badge-api">FASTAPI + CHART.JS (JSON REST)</span>
+                </div>
+
+                <div id="charts-loading" class="charts-loading-text">OBTENIENDO MÉTRICAS DEL BACKEND...</div>
+
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <span class="m-label">PARTIDAS TOTALES</span>
+                        <b id="metric-games" class="m-val text-cyan">--</b>
+                    </div>
+                    <div class="metric-card">
+                        <span class="m-label">BAJAS GLOBALES</span>
+                        <b id="metric-kills" class="m-val text-magenta">--</b>
+                    </div>
+                    <div class="metric-card">
+                        <span class="m-label">PUNTAJE PROMEDIO</span>
+                        <b id="metric-avg-score" class="m-val text-yellow">--</b>
+                    </div>
+                    <div class="metric-card">
+                        <span class="m-label">OLEADA PROMEDIO</span>
+                        <b id="metric-avg-wave" class="m-val text-green">--</b>
+                    </div>
+                </div>
+
+                <div class="charts-container-row">
+                    <div class="chart-wrapper">
+                        <h3>TOP 10 // PUNTUACIONES GLOBALES</h3>
+                        <div class="canvas-holder">
+                            <canvas id="chartScores"></canvas>
+                        </div>
+                    </div>
+                    <div class="chart-wrapper">
+                        <h3>RENDIMIENTO // BAJAS VS OLEADA</h3>
+                        <div class="canvas-holder">
+                            <canvas id="chartPerformance"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <button id="btn-close-charts" class="btn-cyber btn-outline">VOLVER AL COMBATE [ ESC ]</button>
             </div>
         </div>
     </div>
@@ -86,6 +142,7 @@
     <script src="js/entities.js"></script>
     <script src="js/raycaster.js"></script>
     <script src="js/hud.js"></script>
+    <script src="js/charts.js"></script>
     <script src="js/game.js"></script>
 </body>
 </html>

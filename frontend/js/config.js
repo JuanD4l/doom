@@ -31,10 +31,19 @@ const CONFIG = {
         WHITE: "#ffffff"
     },
 
-    // URL del Backend (con fallback local/offline)
-    // Cuando lo despliegues en Render, reemplaza esta URL por tu URL de Render:
-    // Ej: "https://cyberdoom-api.onrender.com"
-    BACKEND_URL: window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
-        ? "http://localhost:8000"
-        : "https://cyberdoom-api.onrender.com"
+    // URL del Backend (con detección automática local/remota y soporte de parámetro ?api=)
+    BACKEND_URL: (() => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const queryApi = urlParams.get("api");
+        if (queryApi) {
+            localStorage.setItem("cyberdoom_backend_url", queryApi);
+            return queryApi.replace(/\/+$/, "");
+        }
+        const savedApi = localStorage.getItem("cyberdoom_backend_url");
+        if (savedApi) return savedApi.replace(/\/+$/, "");
+
+        return (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")
+            ? "http://localhost:8000"
+            : "https://cyberdoom-api.onrender.com";
+    })()
 };

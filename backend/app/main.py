@@ -11,8 +11,15 @@ Servidor FastAPI con CORS habilitado, base de datos SQLite real y endpoints:
 """
 
 import os
+import sys
 import json
 from datetime import datetime
+
+# Asegurar que el directorio 'backend' esté en sys.path
+backend_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if backend_dir not in sys.path:
+    sys.path.insert(0, backend_dir)
+
 from app.database import get_connection
 
 # Intentar arranque con FastAPI para producción (Render / Railway)
@@ -131,6 +138,43 @@ try:
             }
         }
 
+    @app.get("/api/analytics")
+    def get_analytics():
+        conn = get_connection()
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT player_name, score, wave, kills, created_at
+            FROM scores
+            ORDER BY score DESC
+            LIMIT 10
+        """)
+        rows = cursor.fetchall()
+
+        cursor.execute("SELECT COUNT(*) as total_games, SUM(kills) as total_kills, AVG(score) as avg_score, AVG(wave) as avg_wave FROM scores")
+        stats_row = cursor.fetchone()
+        conn.close()
+
+        labels = [r["player_name"] for r in rows]
+        scores = [r["score"] for r in rows]
+        kills = [r["kills"] for r in rows]
+        waves = [r["wave"] for r in rows]
+
+        return {
+            "success": True,
+            "data": {
+                "labels": labels,
+                "scores": scores,
+                "kills": kills,
+                "waves": waves,
+                "summary": {
+                    "total_games": stats_row["total_games"] or 0,
+                    "total_kills": stats_row["total_kills"] or 0,
+                    "avg_score": round(stats_row["avg_score"] or 0, 1),
+                    "avg_wave": round(stats_row["avg_wave"] or 0, 1)
+                }
+            }
+        }
+
 except ImportError:
     # Servidor nativo de respaldo sin dependencias externas para pruebas locales inmediatas
     from http.server import HTTPServer, BaseHTTPRequestHandler
@@ -166,6 +210,47 @@ except ImportError:
                 conn.close()
                 data = [{"id": r["id"], "player_name": r["player_name"], "score": r["score"], "wave": r["wave"], "kills": r["kills"], "created_at": r["created_at"]} for r in rows]
                 self._send_json(200, {"success": True, "data": data})
+            elif url.path == "/api/stats":
+                conn = get_connection()
+                cursor = conn.cursor()
+                cursor.execute("SELECT COUNT(*) as total_games, SUM(kills) as total_kills, MAX(score) as max_score FROM scores")
+                row = cursor.fetchone()
+                conn.close()
+                self._send_json(200, {
+                    "success": True,
+                    "data": {
+                        "total_games": row["total_games"] or 0,
+                        "total_kills": row["total_kills"] or 0,
+                        "max_score": row["max_score"] or 0
+                    }
+                })
+            elif url.path == "/api/analytics":
+                conn = get_connection()
+                cursor = conn.cursor()
+                cursor.execute("SELECT player_name, score, wave, kills FROM scores ORDER BY score DESC LIMIT 10")
+                rows = cursor.fetchall()
+                cursor.execute("SELECT COUNT(*) as total_games, SUM(kills) as total_kills, AVG(score) as avg_score, AVG(wave) as avg_wave FROM scores")
+                srow = cursor.fetchone()
+                conn.close()
+                labels = [r["player_name"] for r in rows]
+                scores = [r["score"] for r in rows]
+                kills = [r["kills"] for r in rows]
+                waves = [r["wave"] for r in rows]
+                self._send_json(200, {
+                    "success": True,
+                    "data": {
+                        "labels": labels,
+                        "scores": scores,
+                        "kills": kills,
+                        "waves": waves,
+                        "summary": {
+                            "total_games": srow["total_games"] or 0,
+                            "total_kills": srow["total_kills"] or 0,
+                            "avg_score": round(srow["avg_score"] or 0, 1),
+                            "avg_wave": round(srow["avg_wave"] or 0, 1)
+                        }
+                    }
+                })
             else:
                 self._send_json(404, {"success": False, "error": "Ruta no encontrada"})
 
@@ -175,11 +260,17 @@ except ImportError:
                 content_len = int(self.headers.get("Content-Length", 0))
                 body = self.rfile.read(content_len)
                 try:
-                    payload = json.loads(body)
+                    body_text = body.decode("utf-8") if isinstance(body, bytes) else str(body)
+                    payload = json.loads(body_text)
+                    p_name = str(payload.get("player_name", "CYBER_MARINE"))[:16]
+                    p_score = int(payload.get("score", 0))
+                    p_wave = int(payload.get("wave", 1))
+                    p_kills = int(payload.get("kills", 0))
+
                     conn = get_connection()
                     cursor = conn.cursor()
                     cursor.execute("INSERT INTO scores (player_name, score, wave, kills) VALUES (?, ?, ?, ?)",
-                                   (payload.get("player_name", "CYBER_MARINE"), payload.get("score", 0), payload.get("wave", 1), payload.get("kills", 0)))
+                                   (p_name, p_score, p_wave, p_kills))
                     conn.commit()
                     new_id = cursor.lastrowid
                     conn.close()

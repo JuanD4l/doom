@@ -23,6 +23,26 @@ def init_db():
         )
     """)
     conn.commit()
+
+    # Insertar datos semilla si la tabla está vacía
+    cursor.execute("SELECT COUNT(*) as cnt FROM scores")
+    count = cursor.fetchone()[0]
+    if count == 0:
+        seed_data = [
+            ("CYBER_SLAYER", 15400, 7, 28),
+            ("NEO_V", 12100, 5, 21),
+            ("NIGHT_HAWK", 9800, 4, 17),
+            ("GLITCH_RUNNER", 7600, 3, 13),
+            ("GHOST_SHELL", 5200, 2, 9),
+            ("CYBER_MARINE", 3400, 2, 6),
+            ("ZERO_COOL", 2100, 1, 4),
+        ]
+        cursor.executemany("""
+            INSERT INTO scores (player_name, score, wave, kills)
+            VALUES (?, ?, ?, ?)
+        """, seed_data)
+        conn.commit()
+
     conn.close()
 
 def get_connection():
