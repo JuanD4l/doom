@@ -321,6 +321,32 @@ class AssetGenerator {
         });
         sprites["volt"] = cVolt;
 
+        // 6. PROYECTIL JUGADOR (Plasma Cian Neón)
+        const cProjP = document.createElement("canvas");
+        cProjP.width = 32; cProjP.height = 32;
+        const ctxPP = cProjP.getContext("2d");
+        const gradP = ctxPP.createRadialGradient(16, 16, 2, 16, 16, 15);
+        gradP.addColorStop(0, "#ffffff");
+        gradP.addColorStop(0.3, CONFIG.COLORS.CYAN);
+        gradP.addColorStop(0.7, "rgba(0, 243, 255, 0.4)");
+        gradP.addColorStop(1, "rgba(0, 243, 255, 0)");
+        ctxPP.fillStyle = gradP;
+        ctxPP.beginPath(); ctxPP.arc(16, 16, 15, 0, Math.PI * 2); ctxPP.fill();
+        sprites["proj_player"] = cProjP;
+
+        // 7. PROYECTIL ENEMIGO (Plasma Rojo/Magenta)
+        const cProjE = document.createElement("canvas");
+        cProjE.width = 32; cProjE.height = 32;
+        const ctxPE = cProjE.getContext("2d");
+        const gradE = ctxPE.createRadialGradient(16, 16, 2, 16, 16, 15);
+        gradE.addColorStop(0, "#ffffff");
+        gradE.addColorStop(0.3, CONFIG.COLORS.RED);
+        gradE.addColorStop(0.7, "rgba(255, 30, 60, 0.4)");
+        gradE.addColorStop(1, "rgba(255, 30, 60, 0)");
+        ctxPE.fillStyle = gradE;
+        ctxPE.beginPath(); ctxPE.arc(16, 16, 15, 0, Math.PI * 2); ctxPE.fill();
+        sprites["proj_enemy"] = cProjE;
+
         // Compatibilidad con tipos anteriores
         sprites["drone"] = cVolt;
         sprites["imp"] = cXyron;

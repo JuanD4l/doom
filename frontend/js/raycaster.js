@@ -207,7 +207,7 @@ class RaycasterRenderer {
             if (transX <= 0.05) continue;
 
             const screenX = (W / 2) + (transY / transX) * distProj;
-            const scale = Math.min(4.5, (1.0 / transX) * distProj);
+            const scale = Math.min(VH * 2.2, (1.0 / transX) * distProj);
             const drawY = (VH / 2) - (scale * item.zOffset);
 
             if (item.type === "enemy") {
@@ -279,10 +279,24 @@ class RaycasterRenderer {
             } else if (item.type === "projectile") {
                 const proj = item.obj;
                 const pCanvas = this.sprites[proj.isPlayer ? "proj_player" : "proj_enemy"];
-                const pSz = Math.max(7, scale * 0.28);
+                const pSz = Math.max(12, Math.min(60, scale * 0.16));
                 const colIdx = Math.max(0, Math.min(CONFIG.NUM_RAYS - 1, Math.floor(screenX / rayW)));
                 if (transX < this.zBuffer[colIdx]) {
-                    ctx.drawImage(pCanvas, screenX - pSz / 2, drawY - pSz / 2, pSz, pSz);
+                    if (pCanvas && pCanvas.width > 0) {
+                        try {
+                            ctx.drawImage(pCanvas, screenX - pSz / 2, drawY - pSz / 2, pSz, pSz);
+                        } catch (e) {}
+                    } else {
+                        // Respaldo visual orbe luminoso
+                        ctx.fillStyle = proj.isPlayer ? CONFIG.COLORS.CYAN : CONFIG.COLORS.RED;
+                        ctx.beginPath();
+                        ctx.arc(screenX, drawY, pSz / 2, 0, Math.PI * 2);
+                        ctx.fill();
+                        ctx.fillStyle = "#ffffff";
+                        ctx.beginPath();
+                        ctx.arc(screenX, drawY, pSz / 4, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
                 }
             } else if (item.type === "particle") {
                 const part = item.obj;

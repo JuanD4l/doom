@@ -378,15 +378,19 @@ class CyberDoomGame {
         this.renderer.render(this.player, this.enemies, this.projectiles, this.particles);
 
         // 2. Arma en primera persona
-        const weaponImg = this.weaponSprites[this.player.weaponFrame];
-        const bobX = Math.cos(this.player.walkBob) * 12;
-        const bobY = Math.abs(Math.sin(this.player.walkBob)) * 16;
-        const shakeX = (Math.random() * 2 - 1) * 8 * this.player.screenShake;
-        const shakeY = (Math.random() * 2 - 1) * 8 * this.player.screenShake;
+        const weaponImg = (this.weaponSprites && this.weaponSprites[this.player.weaponFrame]) || (this.weaponSprites && this.weaponSprites[0]);
+        if (weaponImg && weaponImg.width > 0) {
+            const bobX = Math.cos(this.player.walkBob) * 12;
+            const bobY = Math.abs(Math.sin(this.player.walkBob)) * 16;
+            const shakeX = (Math.random() * 2 - 1) * 8 * this.player.screenShake;
+            const shakeY = (Math.random() * 2 - 1) * 8 * this.player.screenShake;
 
-        const wx = (CONFIG.SCREEN_WIDTH / 2) - (weaponImg.width / 2) + bobX + shakeX;
-        const wy = CONFIG.VIEWPORT_HEIGHT - weaponImg.height + bobY + shakeY;
-        this.ctx.drawImage(weaponImg, wx, wy);
+            const wx = (CONFIG.SCREEN_WIDTH / 2) - (weaponImg.width / 2) + bobX + shakeX;
+            const wy = CONFIG.VIEWPORT_HEIGHT - weaponImg.height + bobY + shakeY;
+            try {
+                this.ctx.drawImage(weaponImg, wx, wy);
+            } catch (err) {}
+        }
 
         // 3. Retícula y Hitmarker
         const cx = CONFIG.SCREEN_WIDTH / 2;
