@@ -188,6 +188,12 @@ class CyberDoomGame {
     }
 
     _startGame() {
+        if (document.activeElement && document.activeElement.blur) {
+            document.activeElement.blur();
+        }
+        if (this.canvas && this.canvas.focus) {
+            this.canvas.focus();
+        }
         this.audio.init();
         this.state = "playing";
         this.titleScreen.classList.remove("active");
@@ -242,8 +248,12 @@ class CyberDoomGame {
         dt = Math.min(0.05, dt);
 
         if (this.state === "playing") {
-            this._update(dt);
-            this._draw(dt);
+            try {
+                this._update(dt);
+                this._draw(dt);
+            } catch (err) {
+                console.error("Frame render warning:", err);
+            }
         }
 
         // Limpiar delta de ratón consumido

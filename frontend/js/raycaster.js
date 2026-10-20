@@ -231,11 +231,25 @@ class RaycasterRenderer {
                 const endCol = Math.min(CONFIG.NUM_RAYS - 1, Math.floor((left + targetW) / rayW));
 
                 for (let col = startCol; col <= endCol; col++) {
-                    if (transX < this.zBuffer[col]) {
+                    if (col >= 0 && col < CONFIG.NUM_RAYS && transX < this.zBuffer[col]) {
                         const colX = col * rayW;
-                        const srcX = ((colX - left) / targetW) * spriteCanvas.width;
-                        const srcW = (rayW / targetW) * spriteCanvas.width;
-                        ctx.drawImage(spriteCanvas, srcX, 0, Math.max(1, srcW), spriteCanvas.height, colX, top, rayW + 0.5, targetH);
+                        let srcX = ((colX - left) / targetW) * spriteCanvas.width;
+                        let srcW = (rayW / targetW) * spriteCanvas.width;
+
+                        // Clamping estricto para evitar IndexSizeError en la API Canvas2D
+                        if (srcX < 0) {
+                            srcW += srcX;
+                            srcX = 0;
+                        }
+                        if (srcX + srcW > spriteCanvas.width) {
+                            srcW = spriteCanvas.width - srcX;
+                        }
+
+                        if (srcW > 0.5 && srcX >= 0 && spriteCanvas.width > 0 && spriteCanvas.height > 0) {
+                            try {
+                                ctx.drawImage(spriteCanvas, srcX, 0, srcW, spriteCanvas.height, colX, top, rayW + 0.5, targetH);
+                            } catch (err) {}
+                        }
                     }
                 }
 
